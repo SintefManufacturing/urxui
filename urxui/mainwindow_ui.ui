@@ -15,78 +15,6 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="13" column="1">
-     <widget class="QLabel" name="label_6">
-      <property name="text">
-       <string>Rx</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="14" column="0">
-     <widget class="QPushButton" name="minusRYButton">
-      <property name="text">
-       <string>-</string>
-      </property>
-     </widget>
-    </item>
-    <item row="16" column="0">
-     <widget class="QPushButton" name="minusRZButton">
-      <property name="text">
-       <string>-</string>
-      </property>
-     </widget>
-    </item>
-    <item row="12" column="0">
-     <widget class="QPushButton" name="minusZButton">
-      <property name="text">
-       <string>-</string>
-      </property>
-     </widget>
-    </item>
-    <item row="12" column="1">
-     <widget class="QLabel" name="label_5">
-      <property name="text">
-       <string>Z</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="1" colspan="5">
-     <widget class="QLineEdit" name="poseLineEdit"/>
-    </item>
-    <item row="13" column="0">
-     <widget class="QPushButton" name="minusRXButton">
-      <property name="text">
-       <string>-</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="0">
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>Current joints:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="5">
-     <widget class="QPushButton" name="disconnectButton">
-      <property name="text">
-       <string>Disconnect</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="4">
-     <widget class="QPushButton" name="connectButton">
-      <property name="text">
-       <string>Connect</string>
-      </property>
-     </widget>
-    </item>
     <item row="1" column="0">
      <spacer name="verticalSpacer_2">
       <property name="orientation">
@@ -100,130 +28,59 @@
       </property>
      </spacer>
     </item>
-    <item row="5" column="1" colspan="5">
-     <widget class="QLineEdit" name="jointsLineEdit"/>
-    </item>
-    <item row="3" column="0">
+    <item row="2" column="0">
      <widget class="QLabel" name="label_9">
       <property name="text">
        <string>Running:</string>
       </property>
      </widget>
     </item>
-    <item row="4" column="0">
+    <item row="3" column="0">
      <widget class="QLabel" name="label">
       <property name="text">
        <string>Current pose:</string>
       </property>
      </widget>
     </item>
-    <item row="0" column="0" colspan="4">
-     <widget class="QLineEdit" name="addressLineEdit">
-      <property name="text">
-       <string>localhost</string>
+    <item row="3" column="1" colspan="5">
+     <widget class="QLineEdit" name="poseLineEdit">
+      <property name="readOnly">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
-    <item row="9" column="0">
-     <widget class="QPushButton" name="minusXButton">
+    <item row="4" column="0">
+     <widget class="QLabel" name="label_2">
       <property name="text">
-       <string>-</string>
+       <string>Current joints:</string>
       </property>
      </widget>
     </item>
-    <item row="9" column="1">
-     <widget class="QLabel" name="label_3">
-      <property name="text">
-       <string>X</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
+    <item row="4" column="1" colspan="5">
+     <widget class="QLineEdit" name="jointsLineEdit">
+      <property name="readOnly">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
-    <item row="9" column="2">
-     <widget class="QPushButton" name="plusXButton">
+    <item row="5" column="0">
+     <widget class="QLabel" name="label_10">
       <property name="text">
-       <string>+</string>
+       <string>Current CSys:</string>
       </property>
      </widget>
     </item>
-    <item row="10" column="0" rowspan="2">
-     <widget class="QPushButton" name="minusYButton">
+    <item row="5" column="1" colspan="4">
+     <widget class="QLineEdit" name="csysLineEdit"/>
+    </item>
+    <item row="5" column="5" colspan="2">
+     <widget class="QPushButton" name="csysButton">
       <property name="text">
-       <string>-</string>
+       <string>Update Csys</string>
       </property>
      </widget>
     </item>
-    <item row="10" column="1">
-     <widget class="QLabel" name="label_4">
-      <property name="text">
-       <string>Y</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="10" column="2">
-     <widget class="QPushButton" name="plusYButton">
-      <property name="text">
-       <string>+</string>
-      </property>
-     </widget>
-    </item>
-    <item row="13" column="2">
-     <widget class="QPushButton" name="plusRXButton">
-      <property name="text">
-       <string>+</string>
-      </property>
-     </widget>
-    </item>
-    <item row="12" column="2">
-     <widget class="QPushButton" name="plusZButton">
-      <property name="text">
-       <string>+</string>
-      </property>
-     </widget>
-    </item>
-    <item row="14" column="2">
-     <widget class="QPushButton" name="plusRYButton">
-      <property name="text">
-       <string>+</string>
-      </property>
-     </widget>
-    </item>
-    <item row="14" column="1">
-     <widget class="QLabel" name="label_7">
-      <property name="text">
-       <string>Ry</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1" colspan="2">
-     <widget class="QLineEdit" name="stateLineEdit"/>
-    </item>
-    <item row="16" column="1">
-     <widget class="QLabel" name="label_8">
-      <property name="text">
-       <string>Rz</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="16" column="2">
-     <widget class="QPushButton" name="plusRZButton">
-      <property name="text">
-       <string>+</string>
-      </property>
-     </widget>
-    </item>
-    <item row="7" column="1">
+    <item row="6" column="1">
      <spacer name="verticalSpacer">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
@@ -236,20 +93,189 @@
       </property>
      </spacer>
     </item>
-    <item row="6" column="0">
-     <widget class="QLabel" name="label_10">
+    <item row="7" column="0">
+     <widget class="QPushButton" name="minusXButton">
       <property name="text">
-       <string>Current CSys:</string>
+       <string>-</string>
       </property>
      </widget>
     </item>
-    <item row="6" column="1" colspan="4">
-     <widget class="QLineEdit" name="csysLineEdit"/>
-    </item>
-    <item row="6" column="5">
-     <widget class="QPushButton" name="csysButton">
+    <item row="7" column="1">
+     <widget class="QLabel" name="label_3">
       <property name="text">
-       <string>Update Csys</string>
+       <string>X</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="2">
+     <widget class="QPushButton" name="plusXButton">
+      <property name="text">
+       <string>+</string>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="0">
+     <widget class="QPushButton" name="minusYButton">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="1">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>Y</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="2">
+     <widget class="QPushButton" name="plusYButton">
+      <property name="text">
+       <string>+</string>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="0">
+     <widget class="QPushButton" name="minusZButton">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="1">
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>Z</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="2">
+     <widget class="QPushButton" name="plusZButton">
+      <property name="text">
+       <string>+</string>
+      </property>
+     </widget>
+    </item>
+    <item row="10" column="0">
+     <widget class="QPushButton" name="minusRXButton">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </widget>
+    </item>
+    <item row="10" column="1">
+     <widget class="QLabel" name="label_6">
+      <property name="text">
+       <string>Rx</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="10" column="2">
+     <widget class="QPushButton" name="plusRXButton">
+      <property name="text">
+       <string>+</string>
+      </property>
+     </widget>
+    </item>
+    <item row="11" column="0">
+     <widget class="QPushButton" name="minusRYButton">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </widget>
+    </item>
+    <item row="11" column="1">
+     <widget class="QLabel" name="label_7">
+      <property name="text">
+       <string>Ry</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="11" column="2">
+     <widget class="QPushButton" name="plusRYButton">
+      <property name="text">
+       <string>+</string>
+      </property>
+     </widget>
+    </item>
+    <item row="12" column="0">
+     <widget class="QPushButton" name="minusRZButton">
+      <property name="text">
+       <string>-</string>
+      </property>
+     </widget>
+    </item>
+    <item row="12" column="1">
+     <widget class="QLabel" name="label_8">
+      <property name="text">
+       <string>Rz</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="12" column="2">
+     <widget class="QPushButton" name="plusRZButton">
+      <property name="text">
+       <string>+</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="6">
+     <widget class="QPushButton" name="disconnectButton">
+      <property name="text">
+       <string>Disconnect</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="5">
+     <widget class="QPushButton" name="connectButton">
+      <property name="text">
+       <string>Connect</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0" colspan="4">
+     <widget class="QLineEdit" name="addressLineEdit">
+      <property name="text">
+       <string>localhost</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="6">
+     <widget class="QPushButton" name="copyJointsButton">
+      <property name="text">
+       <string>Copy</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="6">
+     <widget class="QPushButton" name="copyPoseButton">
+      <property name="text">
+       <string>Copy</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1" colspan="2">
+     <widget class="QLineEdit" name="stateLineEdit">
+      <property name="readOnly">
+       <bool>true</bool>
       </property>
      </widget>
     </item>

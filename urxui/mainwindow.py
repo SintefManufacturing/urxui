@@ -5,7 +5,7 @@ import threading
 import time
 
 from PyQt5.QtCore import pyqtSignal, QTimer, QSettings
-from PyQt5.QtWidgets import QMainWindow,  QApplication
+from PyQt5.QtWidgets import QMainWindow, QApplication
 
 import math3d as m3d
 import urx
@@ -31,6 +31,8 @@ class Window(QMainWindow):
 
         self.ui.connectButton.clicked.connect(self.connect)
         self.ui.disconnectButton.clicked.connect(self.disconnect)
+        self.ui.copyPoseButton.clicked.connect(self.copy_pose)
+        self.ui.copyJointsButton.clicked.connect(self.copy_joints)
 
         self.ui.plusXButton.clicked.connect(self._inc_x)
         self.ui.minusXButton.clicked.connect(self._dec_x)
@@ -80,6 +82,12 @@ class Window(QMainWindow):
         self.robot = None
         print("Disconnected")
 
+    def copy_joints(self):
+        QApplication.clipboard().setText(self.ui.jointsLineEdit.text())
+
+    def copy_pose(self):
+        QApplication.clipboard().setText(self.ui.poseLineEdit.text())
+
     def update_csys(self):
         csys = self.ui.csysLineEdit.text()
         try:
@@ -91,9 +99,12 @@ class Window(QMainWindow):
             raise
 
     def _update_state(self, running, pose, joints):
-        self.ui.poseLineEdit.setText(pose)
-        self.ui.jointsLineEdit.setText(joints)
-        self.ui.stateLineEdit.setText(running)
+        if self.ui.poseLineEdit.text() != pose:
+            self.ui.poseLineEdit.setText(pose)
+        if self.ui.jointsLineEdit.text() != joints:
+            self.ui.jointsLineEdit.setText(joints)
+        if self.ui.stateLineEdit.text() != running:
+            self.ui.stateLineEdit.setText(running)
         self.setWindowTitle("Urx ( address:{}, running:{} )".format(self.ui.addressLineEdit.text(), running))
 
     def _updater(self):
@@ -106,7 +117,7 @@ class Window(QMainWindow):
                 running = "Not connected"
             try:
                 pose = self.robot.getl()
-                pose = [round(i, 3) for i in pose]
+                pose = [round(i, 4) for i in pose]
                 pose = str(pose)
                 joints = self.robot.getj()
                 joints = [round(i, 4) for i in joints]
