@@ -3,6 +3,7 @@
 import sys
 import threading
 import time
+from functools import partial
 
 from PyQt5.QtCore import pyqtSignal, QTimer, QSettings
 from PyQt5.QtWidgets import QMainWindow, QApplication
@@ -23,21 +24,41 @@ class Window(QMainWindow):
 
         # we only show statusbar in case of errors
         self.ui.statusBar.hide()
-        self.setWindowTitle("Urx ( address:{}, running:{} )".format(self.ui.addressLineEdit.text(), "Not connected"))
+
+        self.setWindowTitle("Urx ( address:{}, running:{} )".format(self.ui.addrComboBox.currentText(), "Not connected"))
 
         self.settings = QSettings("UrxUi", "urxui")
-        self.ui.addressLineEdit.setText(self.settings.value("address", "localhost"))
+
+        self._address_list = self.settings.value("address_list", ["localhost", "192.168.0.224"])
+        self._address_list_max_count = int(self.settings.value("address_list_max_count", 10))
+
+        for addr in self._address_list:
+            self.ui.addrComboBox.insertItem(-1, addr)
+
         self.ui.csysLineEdit.setText(self.settings.value("csys", ""))
+        self.ui.stepLineEdit.setText(self.settings.value("jog_step", "0.005"))
+        self.ui.velLineEdit.setText(self.settings.value("jog_vel", "0.01"))
+        self.ui.accLineEdit.setText(self.settings.value("jog_acc", "0.1"))
 
         self.ui.connectButton.clicked.connect(self.connect)
         self.ui.disconnectButton.clicked.connect(self.disconnect)
         self.ui.copyPoseButton.clicked.connect(self.copy_pose)
         self.ui.copyJointsButton.clicked.connect(self.copy_joints)
 
-        self.ui.plusXButton.clicked.connect(self._inc_x)
-        self.ui.minusXButton.clicked.connect(self._dec_x)
-        self.ui.plusYButton.clicked.connect(self._inc_y)
-        self.ui.minusYButton.clicked.connect(self._dec_y)
+        self.ui.plusXButton.clicked.connect(partial(self._inc, 0, 1))
+        self.ui.plusYButton.clicked.connect(partial(self._inc, 1, 1))
+        self.ui.plusZButton.clicked.connect(partial(self._inc, 2, 1))
+        self.ui.minusXButton.clicked.connect(partial(self._inc, 0, -1))
+        self.ui.minusYButton.clicked.connect(partial(self._inc, 1, -1))
+        self.ui.minusZButton.clicked.connect(partial(self._inc, 2, -1))
+
+        self.ui.plusRXButton.clicked.connect(partial(self._inc, 3, 1))
+        self.ui.plusRYButton.clicked.connect(partial(self._inc, 4, 1))
+        self.ui.plusRZButton.clicked.connect(partial(self._inc, 5, 1))
+        self.ui.minusRXButton.clicked.connect(partial(self._inc, 3, -1))
+        self.ui.minusRYButton.clicked.connect(partial(self._inc, 4, -1))
+        self.ui.minusRZButton.clicked.connect(partial(self._inc, 5, -1))
+
 
         self.update_state.connect(self._update_state)
         self.ui.csysButton.clicked.connect(self.update_csys)
@@ -58,7 +79,10 @@ class Window(QMainWindow):
 
     def closeEvent(self, event):
         self._stopev = True
-        self.settings.setValue("address", self.ui.addressLineEdit.text())
+        self.settings.setValue("address_list", self._address_list)
+        self.settings.setValue("jog_acc", self.ui.accLineEdit.text())
+        self.settings.setValue("jog_vel", self.ui.velLineEdit.text())
+        self.settings.setValue("jog_step", self.ui.stepLineEdit.text())
         self.disconnect()
         event.accept()
 
@@ -68,12 +92,14 @@ class Window(QMainWindow):
                 self.disconnect()
             except:
                 print("Error while disconnecting")
+        uri = self.ui.addrComboBox.currentText()
         try:
-            self.robot = urx.Robot(self.ui.addressLineEdit.text())
+            self.robot = urx.Robot(uri)
             self.ui.csysLineEdit.setText(str(self.robot.csys.pose_vector.tolist()))
         except Exception as ex:
             self.show_error(ex)
             raise
+        self._update_address_list(uri)
         print("Connected to ", self.robot)
 
     def disconnect(self):
@@ -81,6 +107,15 @@ class Window(QMainWindow):
             self.robot.close()
         self.robot = None
         print("Disconnected")
+
+    def _update_address_list(self, uri):
+        if uri == self._address_list[0]:
+            return
+        if uri in self._address_list:
+            self._address_list.remove(uri)
+        self._address_list.insert(0, uri)
+        if len(self._address_list) > self._address_list_max_count:
+            self._address_list.pop(-1)
 
     def copy_joints(self):
         QApplication.clipboard().setText(self.ui.jointsLineEdit.text())
@@ -105,7 +140,7 @@ class Window(QMainWindow):
             self.ui.jointsLineEdit.setText(joints)
         if self.ui.stateLineEdit.text() != running:
             self.ui.stateLineEdit.setText(running)
-        self.setWindowTitle("Urx ( address:{}, running:{} )".format(self.ui.addressLineEdit.text(), running))
+        self.setWindowTitle("Urx ( address:{}, running:{} )".format(self.ui.addrComboBox.currentText(), running))
 
     def _updater(self):
         while not self._stopev:
@@ -118,43 +153,33 @@ class Window(QMainWindow):
             try:
                 pose = self.robot.getl()
                 pose = [round(i, 4) for i in pose]
-                pose = str(pose)
+                pose_str = str(pose)
                 joints = self.robot.getj()
                 joints = [round(i, 4) for i in joints]
-                joints = str(joints)
+                joints_str = str(joints)
             except Exception:
-                pose = ""
-                joints = ""
-            self.update_state.emit(running, pose, joints)
+                pose_str = ""
+                joints_str = ""
+            self.update_state.emit(running, pose_str, joints_str)
 
-    def _inc_x(self):
-        p = self.robot.get_pos()
-        p.x += 0.1
-        self.robot.set_pos(p)
+    def _inc(self, axes, direction, checked):
+        step = float(self.ui.stepLineEdit.text())
+        if self.ui.toolRefCheckBox.isChecked():
+            p = [0, 0, 0, 0, 0, 0]
+            if direction > 0:
+                p[axes] += step
+            else:
+                p[axes] -= step 
+            self.robot.movel_tool(p, vel=float(self.ui.velLineEdit.text()), acc=float(self.ui.accLineEdit.text()), wait=False)
+        else:
+            p = self.robot.getl()
+            if direction > 0:
+                p[axes] += step
+            else:
+                p[axes] -= step 
+            self.robot.movel(p, vel=float(self.ui.velLineEdit.text()), acc=float(self.ui.accLineEdit.text()), wait=False)
 
-    def _dec_x(self):
-        p = self.robot.get_pos()
-        p.x -= 0.1
-        self.robot.set_pos(p)
 
-    def _inc_y(self):
-        p = self.robot.get_pos()
-        p.x += 0.1
-        self.robot.set_pos(p)
-
-    def _dec_y(self):
-        p = self.robot.get_pos()
-        p.y -= 0.1
-        self.robot.set_pos(p)
-
-    def _inc_z(self):
-        p = self.robot.get_pos()
-        p.z += 0.1
-        self.robot.set_pos(p)
-
-    def _dec_z(self):
-        p = self.robot.get_pos()
-        p.z -= 0.1
 
 
 

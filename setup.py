@@ -3,7 +3,7 @@ from distutils.command.install_data import install_data
 
 
 setup(name="urxui", 
-      version="0.0.2",
+      version="0.0.4",
       description="Minimal UI to urx Python library",
       author="Olivier Roulet-Dubonnet",
       author_email="olivier.roulet@gmail.com",
@@ -14,7 +14,7 @@ setup(name="urxui",
 
       install_requires=["urx"],
       entry_points={'console_scripts':
-                    ['urxui = urxyu.mainwindow:main']
+                    ['urxui = urxui.mainwindow:main']
                     },
       classifiers=[
             "Programming Language :: Python",
