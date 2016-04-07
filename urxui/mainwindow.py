@@ -95,7 +95,7 @@ class Window(QMainWindow):
         uri = self.ui.addrComboBox.currentText()
         try:
             self.robot = urx.Robot(uri)
-            self.ui.csysLineEdit.setText(str(self.robot.csys.pose_vector.tolist()))
+            self.update_csys()
         except Exception as ex:
             self.show_error(ex)
             raise
@@ -132,6 +132,7 @@ class Window(QMainWindow):
         except Exception as ex:
             self.show_error(ex)
             raise
+        self.settings.setValue("csys", self.ui.csysLineEdit.text())
 
     def _update_state(self, running, pose, joints):
         if self.ui.poseLineEdit.text() != pose:
@@ -145,22 +146,26 @@ class Window(QMainWindow):
     def _updater(self):
         while not self._stopev:
             time.sleep(0.5)
-            if self.robot:
-                # it should never crash... we will see
-                running = str(self.robot.is_running())
-            else:
-                running = "Not connected"
-            try:
-                pose = self.robot.getl()
-                pose = [round(i, 4) for i in pose]
-                pose_str = str(pose)
-                joints = self.robot.getj()
-                joints = [round(i, 4) for i in joints]
-                joints_str = str(joints)
-            except Exception:
-                pose_str = ""
-                joints_str = ""
-            self.update_state.emit(running, pose_str, joints_str)
+            self._update_robot_state()
+
+    def _update_robot_state(self):
+        if self.robot:
+            # it should never crash... we will see
+            running = str(self.robot.is_running())
+        else:
+            running = "Not connected"
+        try:
+            pose = self.robot.getl()
+            pose = [round(i, 4) for i in pose]
+            pose_str = str(pose)
+            joints = self.robot.getj()
+            joints = [round(i, 4) for i in joints]
+            joints_str = str(joints)
+        except Exception:
+            pose_str = ""
+            joints_str = ""
+        self.update_state.emit(running, pose_str, joints_str)
+
 
     def _inc(self, axes, direction, checked):
         step = float(self.ui.stepLineEdit.text())
