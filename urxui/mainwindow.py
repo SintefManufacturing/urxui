@@ -45,6 +45,8 @@ class Window(QMainWindow):
         self.ui.copyPoseButton.clicked.connect(self.copy_pose)
         self.ui.copyJointsButton.clicked.connect(self.copy_joints)
 
+        self.ui.stopButton.clicked.connect(self.stop)
+
         self.ui.plusXButton.clicked.connect(partial(self._inc, 0, 1))
         self.ui.plusYButton.clicked.connect(partial(self._inc, 1, 1))
         self.ui.plusZButton.clicked.connect(partial(self._inc, 2, 1))
@@ -107,6 +109,10 @@ class Window(QMainWindow):
             self.robot.close()
         self.robot = None
         print("Disconnected")
+
+    def stop(self):
+        if self.robot:
+            self.robot.stopj()
 
     def _update_address_list(self, uri):
         if uri == self._address_list[0]:
