@@ -47,23 +47,61 @@ class Window(QMainWindow):
 
         self.ui.stopButton.clicked.connect(self.stop)
 
-        self.ui.plusXButton.clicked.connect(partial(self._inc, 0, 1))
-        self.ui.plusYButton.clicked.connect(partial(self._inc, 1, 1))
-        self.ui.plusZButton.clicked.connect(partial(self._inc, 2, 1))
-        self.ui.minusXButton.clicked.connect(partial(self._inc, 0, -1))
-        self.ui.minusYButton.clicked.connect(partial(self._inc, 1, -1))
-        self.ui.minusZButton.clicked.connect(partial(self._inc, 2, -1))
+        #self.ui.plusXButton.pressed.connect(partial(self._pressed, 0, 1))
+        #self.ui.plusXButton.released.connect(partial(self._released, 0, 1))
+        self.timer = QTimer()
+        self.timer.timeout.connect(self._timeout)
+        self.timer.setSingleShot(False)
+        self._move = None
+        
+        direction = -1
+        axes = 0
+        for button in [self.ui.minusXButton,
+                       self.ui.plusXButton,
+                       self.ui.minusYButton,
+                       self.ui.plusYButton,
+                       self.ui.minusZButton,
+                       self.ui.plusZButton,
+                       self.ui.minusRXButton,
+                       self.ui.plusRXButton,
+                       self.ui.minusRYButton,
+                       self.ui.plusRYButton,
+                       self.ui.minusRZButton,
+                       self.ui.plusRZButton]:
+            button.clicked.connect(partial(self._inc, axes, direction))
+            button.pressed.connect(partial(self._pressed, axes, direction))
+            button.released.connect(partial(self._released, axes, direction))
+            if direction > 0:
+                axes += 1
+            direction = -direction
 
-        self.ui.plusRXButton.clicked.connect(partial(self._inc, 3, 1))
-        self.ui.plusRYButton.clicked.connect(partial(self._inc, 4, 1))
-        self.ui.plusRZButton.clicked.connect(partial(self._inc, 5, 1))
-        self.ui.minusRXButton.clicked.connect(partial(self._inc, 3, -1))
-        self.ui.minusRYButton.clicked.connect(partial(self._inc, 4, -1))
-        self.ui.minusRZButton.clicked.connect(partial(self._inc, 5, -1))
+
+       #self.ui.plusYButton.clicked.connect(partial(self._inc, 1, 1))
+        #self.ui.plusZButton.clicked.connect(partial(self._inc, 2, 1))
+        #self.ui.minusXButton.clicked.connect(partial(self._inc, 0, -1))
+        #self.ui.minusYButton.clicked.connect(partial(self._inc, 1, -1))
+        #self.ui.minusZButton.clicked.connect(partial(self._inc, 2, -1))
+
+
+
+        #self.ui.plusXButton.clicked.connect(partial(self._inc, 0, 1))
+        #self.ui.plusYButton.clicked.connect(partial(self._inc, 1, 1))
+        #self.ui.plusZButton.clicked.connect(partial(self._inc, 2, 1))
+        #self.ui.minusXButton.clicked.connect(partial(self._inc, 0, -1))
+        #self.ui.minusYButton.clicked.connect(partial(self._inc, 1, -1))
+        #self.ui.minusZButton.clicked.connect(partial(self._inc, 2, -1))
+
+        #self.ui.plusRXButton.clicked.connect(partial(self._inc, 3, 1))
+        #self.ui.plusRYButton.clicked.connect(partial(self._inc, 4, 1))
+        #self.ui.plusRZButton.clicked.connect(partial(self._inc, 5, 1))
+        #self.ui.minusRXButton.clicked.connect(partial(self._inc, 3, -1))
+        #self.ui.minusRYButton.clicked.connect(partial(self._inc, 4, -1))
+        #self.ui.minusRZButton.clicked.connect(partial(self._inc, 5, -1))
 
 
         self.update_state.connect(self._update_state)
         self.ui.csysButton.clicked.connect(self.update_csys)
+
 
         self.robot = None
         self._stopev = False
@@ -114,6 +152,7 @@ class Window(QMainWindow):
         if self.robot:
             self.robot.stopj()
 
+
     def _update_address_list(self, uri):
         if uri == self._address_list[0]:
             return
@@ -153,6 +192,11 @@ class Window(QMainWindow):
         while not self._stopev:
             time.sleep(0.5)
             self._update_robot_state()
+            #self._update_robot_move()
+
+    #def _update_robot_move(self):
+        #if self._move:
+            #print("SPEEDL", self._move)
 
     def _update_robot_state(self):
         if self.robot:
@@ -172,8 +216,47 @@ class Window(QMainWindow):
             joints_str = ""
         self.update_state.emit(running, pose_str, joints_str)
 
+    def _timeout(self):
+        self.timer.setInterval(100)
+        if not self.robot:
+            return
+
+        print("timeout")
+        axes, direction = self._move
+        vels = [0, 0, 0, 0, 0, 0]
+        vel = float(self.ui.velLineEdit.text())
+        min_time = self.timer.interval() / 1000 + 0.1
+        acc = float(self.ui.accLineEdit.text())
+        if direction > 0:
+            vels[axes] = vel
+        else:
+            vels[axes] = -vel
+        if self.ui.toolRefCheckBox.isChecked():
+            self.robot.speedl_tool(vels, acc=acc, min_time=min_time)
+        else:
+            self.robot.speedl(vels, acc=acc, min_time=min_time)
+
+    def _pressed(self, a, d):
+        print("PRESSED", a, d)
+        if not self.robot:
+            self.show_error("No connection")
+            return
+        self._move = a, d
+        self.timer.start(800)
+
+    def _released(self, a, d):
+        print("RELEASED", a, d)
+        self.timer.stop()
+        self._move = None
 
     def _inc(self, axes, direction, checked):
+        print("CLICKED")
+        if self.timer.interval() < 500:
+            # this was a long press returning
+            return
+        if not self.robot:
+            self.show_error("No connection")
+            return
         step = float(self.ui.stepLineEdit.text())
         if self.ui.toolRefCheckBox.isChecked():
             p = [0, 0, 0, 0, 0, 0]
