@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>958</width>
-    <height>528</height>
+    <height>548</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -348,9 +348,6 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
-           <widget class="QLineEdit" name="csysLineEdit"/>
-          </item>
           <item row="2" column="2">
            <widget class="QPushButton" name="copyJointsButton">
             <property name="text">
@@ -369,6 +366,13 @@
            <widget class="QPushButton" name="csysButton">
             <property name="text">
              <string>Update Csys</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QComboBox" name="csysComboBox">
+            <property name="editable">
+             <bool>true</bool>
             </property>
            </widget>
           </item>

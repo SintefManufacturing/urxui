@@ -28,14 +28,15 @@ class Window(QMainWindow):
         self.setWindowTitle("Urx ( address:{}, running:{} )".format(self.ui.addrComboBox.currentText(), "Not connected"))
 
         self.settings = QSettings("UrxUi", "urxui")
-
+        
         self._address_list = self.settings.value("address_list", ["localhost", "192.168.0.224"])
-        self._address_list_max_count = int(self.settings.value("address_list_max_count", 10))
-
         for addr in self._address_list:
             self.ui.addrComboBox.insertItem(-1, addr)
 
-        self.ui.csysLineEdit.setText(self.settings.value("csys", ""))
+        self._csys_list = self.settings.value("csys_list", ["[0, 0, 0, 0, 0, 0]"])
+        for addr in self._csys_list:
+            self.ui.csysComboBox.insertItem(-1, addr)
+
         self.ui.stepLineEdit.setText(self.settings.value("jog_step", "0.005"))
         self.ui.velLineEdit.setText(self.settings.value("jog_vel", "0.01"))
         self.ui.accLineEdit.setText(self.settings.value("jog_acc", "0.1"))
@@ -47,8 +48,6 @@ class Window(QMainWindow):
 
         self.ui.stopButton.clicked.connect(self.stop)
 
-        #self.ui.plusXButton.pressed.connect(partial(self._pressed, 0, 1))
-        #self.ui.plusXButton.released.connect(partial(self._released, 0, 1))
         self.timer = QTimer()
         self.timer.timeout.connect(self._timeout)
         self.timer.setSingleShot(False)
@@ -75,37 +74,11 @@ class Window(QMainWindow):
                 axes += 1
             direction = -direction
 
-
-       #self.ui.plusYButton.clicked.connect(partial(self._inc, 1, 1))
-        #self.ui.plusZButton.clicked.connect(partial(self._inc, 2, 1))
-        #self.ui.minusXButton.clicked.connect(partial(self._inc, 0, -1))
-        #self.ui.minusYButton.clicked.connect(partial(self._inc, 1, -1))
-        #self.ui.minusZButton.clicked.connect(partial(self._inc, 2, -1))
-
-
-
-        #self.ui.plusXButton.clicked.connect(partial(self._inc, 0, 1))
-        #self.ui.plusYButton.clicked.connect(partial(self._inc, 1, 1))
-        #self.ui.plusZButton.clicked.connect(partial(self._inc, 2, 1))
-        #self.ui.minusXButton.clicked.connect(partial(self._inc, 0, -1))
-        #self.ui.minusYButton.clicked.connect(partial(self._inc, 1, -1))
-        #self.ui.minusZButton.clicked.connect(partial(self._inc, 2, -1))
-
-        #self.ui.plusRXButton.clicked.connect(partial(self._inc, 3, 1))
-        #self.ui.plusRYButton.clicked.connect(partial(self._inc, 4, 1))
-        #self.ui.plusRZButton.clicked.connect(partial(self._inc, 5, 1))
-        #self.ui.minusRXButton.clicked.connect(partial(self._inc, 3, -1))
-        #self.ui.minusRYButton.clicked.connect(partial(self._inc, 4, -1))
-        #self.ui.minusRZButton.clicked.connect(partial(self._inc, 5, -1))
-
-
         self.update_state.connect(self._update_state)
         self.ui.csysButton.clicked.connect(self.update_csys)
 
-
         self.robot = None
         self._stopev = False
-
 
         self.thread = threading.Thread(target=self._updater)
         self.thread.start()
@@ -119,7 +92,6 @@ class Window(QMainWindow):
 
     def closeEvent(self, event):
         self._stopev = True
-        self.settings.setValue("address_list", self._address_list)
         self.settings.setValue("jog_acc", self.ui.accLineEdit.text())
         self.settings.setValue("jog_vel", self.ui.velLineEdit.text())
         self.settings.setValue("jog_step", self.ui.stepLineEdit.text())
@@ -139,7 +111,7 @@ class Window(QMainWindow):
         except Exception as ex:
             self.show_error(ex)
             raise
-        self._update_address_list(uri)
+        self._save_address_list()
         print("Connected to ", self.robot)
 
     def disconnect(self):
@@ -152,15 +124,26 @@ class Window(QMainWindow):
         if self.robot:
             self.robot.stopj()
 
-
-    def _update_address_list(self, uri):
+    def _save_address_list(self):
+        uri = self.ui.addrComboBox.currentText()
         if uri == self._address_list[0]:
             return
         if uri in self._address_list:
             self._address_list.remove(uri)
         self._address_list.insert(0, uri)
-        if len(self._address_list) > self._address_list_max_count:
-            self._address_list.pop(-1)
+        self._address_list = self._address_list[:int(self.settings.value("address_list_max_count", 10))]
+        self.settings.setValue("address_list", self._address_list)
+
+    def _save_csys(self):
+        csys = self.ui.csysComboBox.currentText()
+        if csys == self._csys_list[0]:
+            return
+        if csys in self._csys_list:
+            self._csys_list.remove(csys)
+        self._csys_list.insert(0, csys)
+        max_count = int(self.settings.value("csys_max_count", 10))
+        self._csys_list = self._csys_list[:max_count]
+        self.settings.setValue("csys_list", self._csys_list)
 
     def copy_joints(self):
         QApplication.clipboard().setText(self.ui.jointsLineEdit.text())
@@ -169,7 +152,7 @@ class Window(QMainWindow):
         QApplication.clipboard().setText(self.ui.poseLineEdit.text())
 
     def update_csys(self):
-        csys = self.ui.csysLineEdit.text()
+        csys = self.ui.csysComboBox.currentText()
         try:
             csys = eval(csys)
             csys = m3d.Transform(csys)
@@ -177,7 +160,7 @@ class Window(QMainWindow):
         except Exception as ex:
             self.show_error(ex)
             raise
-        self.settings.setValue("csys", self.ui.csysLineEdit.text())
+        self._save_csys()
 
     def _update_state(self, running, pose, joints):
         if self.ui.poseLineEdit.text() != pose:
@@ -192,11 +175,6 @@ class Window(QMainWindow):
         while not self._stopev:
             time.sleep(0.5)
             self._update_robot_state()
-            #self._update_robot_move()
-
-    #def _update_robot_move(self):
-        #if self._move:
-            #print("SPEEDL", self._move)
 
     def _update_robot_state(self):
         if self.robot:
@@ -221,7 +199,6 @@ class Window(QMainWindow):
         if not self.robot:
             return
 
-        print("timeout")
         axes, direction = self._move
         vels = [0, 0, 0, 0, 0, 0]
         vel = float(self.ui.velLineEdit.text())
@@ -236,22 +213,20 @@ class Window(QMainWindow):
         else:
             self.robot.speedl(vels, acc=acc, min_time=min_time)
 
-    def _pressed(self, a, d):
-        print("PRESSED", a, d)
+    def _pressed(self, axes, direction):
         if not self.robot:
             self.show_error("No connection")
             return
-        self._move = a, d
-        self.timer.start(800)
+        self._move = axes, direction
+        self.timer.start(500)
 
-    def _released(self, a, d):
-        print("RELEASED", a, d)
+    def _released(self, axes, direction):
         self.timer.stop()
         self._move = None
+        self.robot.stopj()
 
     def _inc(self, axes, direction, checked):
-        print("CLICKED")
-        if self.timer.interval() < 500:
+        if self.timer.interval() < 300:
             # this was a long press returning
             return
         if not self.robot:
