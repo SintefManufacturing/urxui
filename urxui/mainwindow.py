@@ -37,9 +37,10 @@ class Window(QMainWindow):
         for addr in self._csys_list:
             self.ui.csysComboBox.insertItem(-1, addr)
 
-        self.ui.stepLineEdit.setText(self.settings.value("jog_step", "0.005"))
-        self.ui.velLineEdit.setText(self.settings.value("jog_vel", "0.01"))
-        self.ui.accLineEdit.setText(self.settings.value("jog_acc", "0.1"))
+        self.ui.velLineEdit.setText(self.settings.value("lin_vel", "0.01"))
+        self.ui.accLineEdit.setText(self.settings.value("lin_acc", "0.1"))
+        self.ui.jointVelLineEdit.setText(self.settings.value("joint_vel", "0.01"))
+        self.ui.jointAccLineEdit.setText(self.settings.value("joint_acc", "0.1"))
 
         self.ui.connectButton.clicked.connect(self.connect)
         self.ui.disconnectButton.clicked.connect(self.disconnect)
@@ -48,11 +49,19 @@ class Window(QMainWindow):
 
         self.ui.stopButton.clicked.connect(self.stop)
 
-        self.timer = QTimer()
-        self.timer.timeout.connect(self._timeout)
-        self.timer.setSingleShot(False)
-        self._move = None
+        self.connect_linear_buttons()
+        self.connect_joint_buttons()
         
+        self.update_state.connect(self._update_state)
+        self.ui.csysButton.clicked.connect(self.update_csys)
+
+        self.robot = None
+        self._stopev = False
+
+        self.thread = threading.Thread(target=self._updater)
+        self.thread.start()
+
+    def connect_linear_buttons(self):
         direction = -1
         axes = 0
         for button in [self.ui.minusXButton,
@@ -67,21 +76,36 @@ class Window(QMainWindow):
                        self.ui.plusRYButton,
                        self.ui.minusRZButton,
                        self.ui.plusRZButton]:
+            button.setAutoRepeat(True)
+            button.setAutoRepeatDelay(125)
+            button.setAutoRepeatInterval(125)
             button.clicked.connect(partial(self._inc, axes, direction))
-            button.pressed.connect(partial(self._pressed, axes, direction))
-            button.released.connect(partial(self._released, axes, direction))
             if direction > 0:
                 axes += 1
             direction = -direction
 
-        self.update_state.connect(self._update_state)
-        self.ui.csysButton.clicked.connect(self.update_csys)
-
-        self.robot = None
-        self._stopev = False
-
-        self.thread = threading.Thread(target=self._updater)
-        self.thread.start()
+    def connect_joint_buttons(self):
+        direction = -1
+        joint = 0
+        for button in [self.ui.decJ0Button,
+                       self.ui.incJ0Button,
+                       self.ui.decJ1Button,
+                       self.ui.incJ1Button,
+                       self.ui.decJ2Button,
+                       self.ui.incJ2Button,
+                       self.ui.decJ3Button,
+                       self.ui.incJ3Button,
+                       self.ui.decJ4Button,
+                       self.ui.incJ4Button,
+                       self.ui.decJ5Button,
+                       self.ui.incJ5Button]:
+            button.setAutoRepeat(True)
+            button.setAutoRepeatDelay(125)
+            button.setAutoRepeatInterval(125)
+            button.clicked.connect(partial(self._jinc, joint, direction))
+            if direction > 0:
+                joint += 1
+            direction = -direction
 
     def show_error(self, msg, level=1):
         print("showing error: ", msg, level)
@@ -194,59 +218,34 @@ class Window(QMainWindow):
             joints_str = ""
         self.update_state.emit(running, pose_str, joints_str)
 
-    def _timeout(self):
-        self.timer.setInterval(100)
+    def _inc(self, axes, direction, checked):
         if not self.robot:
+            self.show_error("No connection")
             return
-
-        axes, direction = self._move
         vels = [0, 0, 0, 0, 0, 0]
         vel = float(self.ui.velLineEdit.text())
-        min_time = self.timer.interval() / 1000 + 0.1
         acc = float(self.ui.accLineEdit.text())
         if direction > 0:
             vels[axes] = vel
         else:
             vels[axes] = -vel
         if self.ui.toolRefCheckBox.isChecked():
-            self.robot.speedl_tool(vels, acc=acc, min_time=min_time)
+            self.robot.speedl_tool(vels, acc=acc, min_time=0.2)
         else:
-            self.robot.speedl(vels, acc=acc, min_time=min_time)
+            self.robot.speedl(vels, acc=acc, min_time=0.2)
 
-    def _pressed(self, axes, direction):
+    def _jinc(self, joint, direction, checked):
         if not self.robot:
             self.show_error("No connection")
             return
-        self._move = axes, direction
-        self.timer.start(500)
-
-    def _released(self, axes, direction):
-        self.timer.stop()
-        self._move = None
-        self.robot.stopj()
-
-    def _inc(self, axes, direction, checked):
-        if self.timer.interval() < 300:
-            # this was a long press returning
-            return
-        if not self.robot:
-            self.show_error("No connection")
-            return
-        step = float(self.ui.stepLineEdit.text())
-        if self.ui.toolRefCheckBox.isChecked():
-            p = [0, 0, 0, 0, 0, 0]
-            if direction > 0:
-                p[axes] += step
-            else:
-                p[axes] -= step 
-            self.robot.movel_tool(p, vel=float(self.ui.velLineEdit.text()), acc=float(self.ui.accLineEdit.text()), wait=False)
+        p = [0, 0, 0, 0, 0, 0]
+        vel = float(self.ui.jointVelLineEdit.text())
+        acc = float(self.ui.jointAccLineEdit.text())
+        if direction > 0:
+            p[joint] += vel
         else:
-            p = self.robot.getl()
-            if direction > 0:
-                p[axes] += step
-            else:
-                p[axes] -= step 
-            self.robot.movel(p, vel=float(self.ui.velLineEdit.text()), acc=float(self.ui.accLineEdit.text()), wait=False)
+            p[joint] -= vel 
+        self.robot.speedj(p, acc=acc, min_time=0.2)
 
 
 
