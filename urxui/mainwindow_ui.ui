@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1024</width>
-    <height>601</height>
+    <height>611</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -196,43 +196,6 @@
            <enum>QFrame::Raised</enum>
           </property>
           <layout class="QGridLayout" name="gridLayout_2">
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_12">
-             <property name="text">
-              <string>Step (m)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_14">
-             <property name="text">
-              <string>Default acceleration (m/s2)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QCheckBox" name="toolRefCheckBox">
-             <property name="text">
-              <string>Tool reference</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <widget class="QLineEdit" name="velLineEdit"/>
-           </item>
-           <item row="2" column="1">
-            <widget class="QLineEdit" name="accLineEdit"/>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLineEdit" name="stepLineEdit"/>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="label_11">
-             <property name="text">
-              <string>Default velocity (m/s)</string>
-             </property>
-            </widget>
-           </item>
            <item row="0" column="2" rowspan="4">
             <widget class="QFrame" name="frame_4">
              <property name="frameShape">
@@ -389,6 +352,33 @@
              </layout>
             </widget>
            </item>
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="toolRefCheckBox">
+             <property name="text">
+              <string>Tool reference</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_14">
+             <property name="text">
+              <string>Default acceleration (m/s2)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="accLineEdit"/>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_11">
+             <property name="text">
+              <string>Default velocity (m/s)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLineEdit" name="velLineEdit"/>
+           </item>
           </layout>
          </widget>
         </item>
@@ -408,23 +398,6 @@
            <enum>QFrame::Raised</enum>
           </property>
           <layout class="QGridLayout" name="gridLayout_4">
-           <item row="3" column="0">
-            <widget class="QLabel" name="label_21">
-             <property name="text">
-              <string>Default velocity (rad/s)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_20">
-             <property name="text">
-              <string>Default acceleration (rad/s2)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <widget class="QLineEdit" name="jointVelLineEdit"/>
-           </item>
            <item row="1" column="2" rowspan="3">
             <widget class="QFrame" name="frame_7">
              <property name="frameShape">
@@ -581,8 +554,38 @@
              </layout>
             </widget>
            </item>
-           <item row="2" column="1">
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_20">
+             <property name="text">
+              <string>Default acceleration (rad/s2)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
             <widget class="QLineEdit" name="jointAccLineEdit"/>
+           </item>
+           <item row="4" column="0">
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_21">
+             <property name="text">
+              <string>Default velocity (rad/s)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLineEdit" name="jointVelLineEdit"/>
            </item>
           </layout>
          </widget>
@@ -659,6 +662,13 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QCheckBox" name="dio7CheckBox">
+             <property name="text">
+              <string>7</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
@@ -679,7 +689,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>26</height>
+     <height>24</height>
     </rect>
    </property>
   </widget>

@@ -15,7 +15,7 @@ from urxui.mainwindow_ui import Ui_MainWindow
 
 
 class Window(QMainWindow):
-    update_state = pyqtSignal(str, str, str)
+    update_state = pyqtSignal(str, str, str, int)
 
     def __init__(self):
         QMainWindow.__init__(self)
@@ -37,20 +37,30 @@ class Window(QMainWindow):
         for addr in self._csys_list:
             self.ui.csysComboBox.insertItem(-1, addr)
 
-        self.ui.velLineEdit.setText(self.settings.value("lin_vel", "0.01"))
-        self.ui.accLineEdit.setText(self.settings.value("lin_acc", "0.1"))
-        self.ui.jointVelLineEdit.setText(self.settings.value("joint_vel", "0.01"))
-        self.ui.jointAccLineEdit.setText(self.settings.value("joint_acc", "0.1"))
+        self.ui.velLineEdit.setText(self.settings.value("lin_vel", "0.1"))
+        self.ui.accLineEdit.setText(self.settings.value("lin_acc", "0.05"))
+        self.ui.jointVelLineEdit.setText(self.settings.value("joint_vel", "0.4"))
+        self.ui.jointAccLineEdit.setText(self.settings.value("joint_acc", "0.2"))
 
         self.ui.connectButton.clicked.connect(self.connect)
         self.ui.disconnectButton.clicked.connect(self.disconnect)
         self.ui.copyPoseButton.clicked.connect(self.copy_pose)
         self.ui.copyJointsButton.clicked.connect(self.copy_joints)
 
+        self.dio_boxes = [self.ui.dio0CheckBox,
+                          self.ui.dio1CheckBox,
+                          self.ui.dio2CheckBox,
+                          self.ui.dio3CheckBox,
+                          self.ui.dio4CheckBox,
+                          self.ui.dio5CheckBox,
+                          self.ui.dio6CheckBox,
+                          self.ui.dio7CheckBox]
+
         self.ui.stopButton.clicked.connect(self.stop)
 
         self.connect_linear_buttons()
         self.connect_joint_buttons()
+        self.connect_dio()
         
         self.update_state.connect(self._update_state)
         self.ui.csysButton.clicked.connect(self.update_csys)
@@ -107,6 +117,10 @@ class Window(QMainWindow):
                 joint += 1
             direction = -direction
 
+    def connect_dio(self):
+        for idx, box in enumerate(self.dio_boxes):
+            box.clicked.connect(partial(self._dio, idx))
+
     def show_error(self, msg, level=1):
         print("showing error: ", msg, level)
         self.ui.statusBar.show()
@@ -116,9 +130,10 @@ class Window(QMainWindow):
 
     def closeEvent(self, event):
         self._stopev = True
-        self.settings.setValue("jog_acc", self.ui.accLineEdit.text())
-        self.settings.setValue("jog_vel", self.ui.velLineEdit.text())
-        self.settings.setValue("jog_step", self.ui.stepLineEdit.text())
+        self.settings.setValue("lin_acc", self.ui.accLineEdit.text())
+        self.settings.setValue("lin_vel", self.ui.velLineEdit.text())
+        self.settings.setValue("joint_acc", self.ui.jointAccLineEdit.text())
+        self.settings.setValue("joint_vel", self.ui.jointVelLineEdit.text())
         self.disconnect()
         event.accept()
 
@@ -186,37 +201,53 @@ class Window(QMainWindow):
             raise
         self._save_csys()
 
-    def _update_state(self, running, pose, joints):
+    def _update_state(self, running, pose, joints, bits):
         if self.ui.poseLineEdit.text() != pose:
             self.ui.poseLineEdit.setText(pose)
         if self.ui.jointsLineEdit.text() != joints:
             self.ui.jointsLineEdit.setText(joints)
         if self.ui.stateLineEdit.text() != running:
             self.ui.stateLineEdit.setText(running)
+        self._update_dio_ut(bits)
+
         self.setWindowTitle("Urx ( address:{}, running:{} )".format(self.ui.addrComboBox.currentText(), running))
+
+    def _update_dio_ut(self, bits):
+        io = 0
+        for box in self.dio_boxes:
+            self._update_diobox(box, bits, io)
+            io += 1
+
+    def _update_diobox(self, checkbox, bits, num):
+        if bits & 1 << num:
+            checkbox.setChecked(True)
+        else:
+            checkbox.setChecked(False)
 
     def _updater(self):
         while not self._stopev:
             time.sleep(0.5)
             self._update_robot_state()
-
+            
     def _update_robot_state(self):
+        pose_str = ""
+        joints_str = ""
+        bits = 0
+        running = "Not connected"
         if self.robot:
             # it should never crash... we will see
             running = str(self.robot.is_running())
-        else:
-            running = "Not connected"
-        try:
-            pose = self.robot.getl()
-            pose = [round(i, 4) for i in pose]
-            pose_str = str(pose)
-            joints = self.robot.getj()
-            joints = [round(i, 4) for i in joints]
-            joints_str = str(joints)
-        except Exception:
-            pose_str = ""
-            joints_str = ""
-        self.update_state.emit(running, pose_str, joints_str)
+            try:
+                pose = self.robot.getl()
+                pose = [round(i, 4) for i in pose]
+                pose_str = str(pose)
+                joints = self.robot.getj()
+                joints = [round(i, 4) for i in joints]
+                joints_str = str(joints)
+                bits = self.robot.get_digital_out_bits()
+            except Exception as ex:
+                print(ex)
+        self.update_state.emit(running, pose_str, joints_str, bits)
 
     def _inc(self, axes, direction, checked):
         if not self.robot:
@@ -246,6 +277,14 @@ class Window(QMainWindow):
         else:
             p[joint] -= vel 
         self.robot.speedj(p, acc=acc, min_time=0.2)
+
+    def _dio(self, io, val):
+        try:
+            print("Setting IO{} to {}".format(io, val))
+            self.robot.set_digital_out(io, val)
+        except Exception as ex:
+            self.show_error(ex)
+
 
 
 

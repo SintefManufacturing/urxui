@@ -12,7 +12,7 @@ setup(name="urxui",
       provides=["urxui"],
       license="GNU General Public License v3",
 
-      install_requires=["urx"],
+      install_requires=["urx>=0.9.4"],
       entry_points={'console_scripts':
                     ['urxui = urxui.mainwindow:main']
                     },
